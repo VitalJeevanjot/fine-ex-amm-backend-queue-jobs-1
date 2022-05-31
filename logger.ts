@@ -14,7 +14,7 @@ const options: any = {
     debug: console.log,
   },
   postgresUrl: `postgres://${setRequiredVariable('USER_NAME')}:${setRequiredVariable('USER_PASSWORD')}@${setRequiredVariable('DB_URL')}:${setRequiredVariable('DB_PORT')}/${setRequiredVariable('DB_NAME')}`,
-  tableName: setRequiredVariable('DB_TABLE_NAME'),
+  tableName: setRequiredVariable('DB_TABLE_NAME_LOGS'),
 };
 
 const logger = winston.createLogger({
