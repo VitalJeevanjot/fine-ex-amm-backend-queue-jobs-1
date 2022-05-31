@@ -1,0 +1,9 @@
+name: dev-queue-job-backend-fine-ex-mmm-1
+image: okteto/node:14
+command: bash
+sync:
+- .:/usr/src/app
+forward:
+- 9239:9229
+- 3002:3000
+autocreate: true
