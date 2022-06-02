@@ -4,6 +4,8 @@ const path: any = require('path')
 import axios from 'axios';
 const crypto = require('crypto')
 
+const Cryptr = require('cryptr')
+
 require('dotenv').config({ path: __dirname + '/.env' })
 
 const setRequiredVariable = (variableName: string) => {
