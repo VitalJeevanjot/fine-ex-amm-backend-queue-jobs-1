@@ -14,7 +14,7 @@ const my_services = async (req: Request, res: Response) => {
     logger.info("my_services: " + JSON.stringify(req.body))
     return res.status(200).send('data412523523412')
   } catch (e: any) {
-    logger.error('Unexpected Error: ' + e.toString())
+    logger.error('Unexpected Error: ' + e.stack.toString())
     return res.status(500).json({
       'message': 'Unexpected error'
     })
@@ -72,7 +72,7 @@ const create_new = async (req: Request, res: Response) => {
     return res.status(200).send({message: '<span class="text-green">Running!</span>'})
   } catch (e: any) {
     console.log(e.message)
-    logger.error('Unexpected Error: ' + e.toString())
+    logger.error('Unexpected Error: ' + e.stack.toString())
     return res.status(500).json({
       'message': 'Unexpected error'
     })
