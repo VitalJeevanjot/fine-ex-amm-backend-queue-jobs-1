@@ -14,9 +14,9 @@ app.use(function (req, res, next) {
   next();
 });
 
-// app.get('/', queueController.say_hello)
-app.get('/my_services', queueController.my_services)
-app.post('/create_new', queueController.create_new)
+app.post('/create_new_task', queueController.create_new)
+app.post('/stop_task', queueController.create_new)
+app.post('/delete_task', queueController.create_new)
 
 app.listen(port, () => logger.info(`Running at ${port}!`))
 

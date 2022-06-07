@@ -8,25 +8,11 @@ import { addJobs } from './helpers/queue_helper';
 
 // var user_task_control = new db.table('user_task_control')
 
-const my_services = async (req: Request, res: Response) => {
-  try {
-    console.log('services')
-    logger.info("my_services: " + JSON.stringify(req.body))
-    return res.status(200).send('data412523523412')
-  } catch (e: any) {
-    logger.error('Unexpected Error: ' + e.stack.toString())
-    return res.status(500).json({
-      'message': 'Unexpected error'
-    })
-  }
-
-}
-
 const create_new = async (req: Request, res: Response) => {
   try {
     // let add_jobs = addJobs(req.body)
     console.log(req.body) // should be req.body.body
-    logger.info("create_new: " + JSON.stringify(req.body))
+    logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: " + JSON.stringify(req.body))
     // var user_details = await getUserDetails(
     //   req.body.body.api_key,
     //   req.body.body.api_secret,
@@ -72,7 +58,7 @@ const create_new = async (req: Request, res: Response) => {
     return res.status(200).send({message: '<span class="text-green">Running!</span>'})
   } catch (e: any) {
     console.log(e.message)
-    logger.error('Unexpected Error: ' + e.stack.toString())
+    logger.info(setRequiredVariable('SERVER_NAME') + 'Unexpected Error: ' + e.stack.toString())
     return res.status(500).json({
       'message': 'Unexpected error'
     })
@@ -81,7 +67,6 @@ const create_new = async (req: Request, res: Response) => {
 
 
 export {
-  my_services,
   create_new
 }
 
