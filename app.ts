@@ -1,7 +1,6 @@
 import express from 'express';
 import logger from './logger';
-import * as queueController from './controller/queueController'
-import axios from 'axios'
+import * as queueController from './controller/serverRequestController'
 
 const app = express();
 
