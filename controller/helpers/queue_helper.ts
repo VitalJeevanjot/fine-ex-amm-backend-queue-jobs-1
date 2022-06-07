@@ -53,7 +53,7 @@ async function addJobs (job_data: any, email: string) {
       volumeInHour: job_data.volumeInHour, // volume per hour made by this task (average, instead of every hour), task continuation requirement based on this
       volumeInEachHour: job_data.volumeInEachHour, // exact volume per hour made by this task
       fine_exchange_user_id: job_data.email, // unique id (email probably) of this fine exchange user (from fine exchange mainnet)
-      task_id: 0 // to be send by front-end (unique if of the task)
+      task_id: job_data.task_uuid // to be send by front-end (unique if of the task)
     }
     ,
     {
