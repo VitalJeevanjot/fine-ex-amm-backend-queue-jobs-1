@@ -70,7 +70,7 @@ queueEvents.on('completed', (data: any) => {
   
   if (data.returnvalue.continue == true) {
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: job_completed: job_repeated: " + data.returnvalue.logger_key + ": job_id: " + data.jobId + ": returned_value: " + encryptData(JSON.stringify(data.returnvalue)))
-    addJobs(data.returnvalue)
+    addJobs(data.returnvalue, data.returnvalue.email)
     // TODO: update db
   } else {
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: job_completed: job_not_repeated: " + data.returnvalue.logger_key + ": job_id: " + data.jobId + ": returned_value: " + encryptData(JSON.stringify(data.returnvalue)))

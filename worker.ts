@@ -7,23 +7,23 @@ import { setRequiredVariable } from './helpers';
 
 
 async function main () {
-  console.log('up!')
-  // for better make 2 workers with 2 loggins, One for 'buying' and one for 'selling'
-  // <...Testing...> 
-  var obj: any = {
-    urls:
-    {
-      api:
-      {
-        rest:
-          "https://api.fine.exchange"
-      }
-    }
-  }
-  const exchange: any = new ccxt.hollaex(obj)
-  exchange.apiKey = setRequiredVariable('APIKEY')
-  exchange.secret = setRequiredVariable('APISECRET')
-  console.log(await exchange.fetchStatus())
+  // console.log('up!')
+  // // for better make 2 workers with 2 loggins, One for 'buying' and one for 'selling'
+  // // <...Testing...> 
+  // var obj: any = {
+  //   urls:
+  //   {
+  //     api:
+  //     {
+  //       rest:
+  //         "https://api.fine.exchange"
+  //     }
+  //   }
+  // }
+  // const exchange: any = new ccxt.hollaex(obj)
+  // exchange.apiKey = setRequiredVariable('APIKEY')
+  // exchange.secret = setRequiredVariable('APISECRET')
+  // console.log(await exchange.fetchStatus())
 
 
   // console.log(await exchange.fetchAccounts())
