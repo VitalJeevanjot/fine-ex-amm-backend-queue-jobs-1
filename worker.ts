@@ -7,7 +7,7 @@ import { setRequiredVariable } from './helpers';
 
 
 async function main () {
-  // console.log('up!')
+  console.log('up!')
   // // for better make 2 workers with 2 loggins, One for 'buying' and one for 'selling'
   // // <...Testing...> 
   // var obj: any = {
@@ -94,7 +94,7 @@ async function main () {
     let get_symbol = job.data.symbol.split('/') // base/quote currency
     let get_orderbook = await exchange.fetchOrderBook(job.data.symbol, 5)
     let top_bid_ask = (get_side === 'buy') ?
-      get_orderbook.bids[0][0] : get_orderbook.asks[0][0]  // price of 1st from bids : asks
+    get_orderbook.bids[0][0] : get_orderbook.asks[0][0]  // price of 1st from bids : asks
     let calculate_price_spread = (get_side === 'buy') ? top_bid_ask - (top_bid_ask / 100 * 5) : top_bid_ask + (top_bid_ask / 100 * 5)
     var get_balance = await exchange.fetchBalance()
     // (for my exchange) the percentage of amount used is base currency, to buy/sell quote
@@ -142,7 +142,7 @@ async function main () {
         price: job.data.price,
         api_key: job.data.api_key,
         api_secret: job.data.api_secret,
-        continue: true
+        continue: false
       }
     }
   }, {
