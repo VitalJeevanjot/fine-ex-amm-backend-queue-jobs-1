@@ -27,7 +27,7 @@ const queueEvents = new QueueEvents('tasks', {
 })
 
 
-async function getOrderBook(job: any, res: any) {
+async function getOrderBook(job: any, res: any, uniq_id: string) {
   var obj: any = {
       urls:
       {
@@ -43,7 +43,7 @@ async function getOrderBook(job: any, res: any) {
     let get_orderbook = await exchange.fetchOrderBook(job.symbol, 5)
     if(get_orderbook.bids.length < 1 || get_orderbook.asks.length < 1) {
     return res.status(200).json({ // status 200, so it can be passed from the function in load balancer
-      status: 'Error: No orders available to take reference from.',
+      status: 'Error: No orders available to take reference from.' + uniq_id,
     })
   }
   } catch(e:any) {
@@ -76,8 +76,8 @@ async function addJobs (job_data: any, email: string, res: any) {
       fine_exchange_user_id: job_data.email, // unique id (email probably) of this fine exchange user (from fine exchange mainnet)
       task_id: job_data.task_uuid // to be send by front-end (unique if of the task)
     }
-
-  await getOrderBook(_obj, res) // Test if order book exist (because this is required to refer price spread in worker)
+  let uniq_id = job_data.login_api_apiKey_S
+  await getOrderBook(_obj, res, uniq_id) // Test if order book exist (because this is required to refer price spread in worker)
   await addToQueue(_obj, job_data)
 }
 
