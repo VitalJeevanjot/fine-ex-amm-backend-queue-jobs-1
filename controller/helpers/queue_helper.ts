@@ -98,12 +98,19 @@ async function addToQueue(_obj: any, job_data: any, again: any) {
   }
 }
 
+// TODO: use 'failed' event as well to set task stopped in db
+queueEvents.on('failed', (job: any) => {
+  // job has failed
+  console.log(job)
+  // { jobId: '8', failedReason: "Cannot read property '0' of undefined" }
+});
 queueEvents.on('completed', (data: any) => {
   console.log(`${data.jobId} has completed and returned`);
   console.log(data.returnvalue) // TODO: remove this from here after it is working
   logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: job_completed: " + data.returnvalue.login_api_apiKey_S + ": job_id: " + data.jobId + ": returned_value: " + encryptData(JSON.stringify(data.returnvalue)))
   
   // TODO: calculate if it is required to continue this task or not
+  // TODO: Use DB (stopped/running) to continue or not instead of these variables
   if (data.returnvalue.continue == true) {
     console.log(data.returnvalue)
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: job_completed: job_repeated: " + data.returnvalue.login_api_apiKey_S + ": job_id: " + data.jobId + ": returned_value: " + encryptData(JSON.stringify(data.returnvalue)))
