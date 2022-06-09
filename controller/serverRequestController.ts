@@ -11,8 +11,8 @@ import { addJobs } from './helpers/queue_helper';
 const create_new = async (req: Request, res: Response) => {
   try {
     logger.info('\n\n')
-    
-    console.log(req.body) // should be req.body.body
+
+    // console.log(req.body) // should be req.body.body
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: " + req.body.body.login_api_apiKey_S.toString() + ": " + encryptData(JSON.stringify(req.body)))
     await addJobs(req.body.body, req.body.login_email, res)
     if(res.headersSent) {

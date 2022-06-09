@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/app.js",
+    "list-tasks": "ts-node controller/cli/view_all_jobs.ts",
+    "remove-tasks": "ts-node controller/cli/remove_all_jobs.ts",
     "dev": "redis-server & nodemon app.ts",
     "worker": "nodemon worker.ts",
     "build": "tsc -p ."

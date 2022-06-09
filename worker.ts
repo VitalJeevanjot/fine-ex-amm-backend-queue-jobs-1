@@ -80,7 +80,7 @@ async function main () {
         api:
         {
           rest:
-            job.data.exchange_url
+            job.data.api_url
         }
       }
     }
@@ -107,18 +107,22 @@ async function main () {
         calculated_amount,
         calculate_price_spread
       )
-      console.log("----new order----")
-      console.log(orderId)
+      // console.log("----new order----")
+      // console.log(orderId)
       return {
         order_id: orderId.id,
-        exchange_url: job.data.exchange_url,
+        api_url: job.data.api_url,
         symbol: job.data.symbol,
         type: job.data.type,
         side: job.data.side,
         amount: job.data.amount,
-        price: job.data.price,
+        spread_percent: job.data.price,
         api_key: job.data.api_key,
         api_secret: job.data.api_secret,
+        login_api_apiKey_S: job.data.login_api_apiKey_S,
+        email: job.data.email,
+        seconds_interval: job.data.seconds_interval,
+        task_uuid: job.data.task_id,
         continue: true
       }
     } else {
@@ -130,19 +134,23 @@ async function main () {
         calculated_amount,
         calculate_price_spread
       )
-      console.log("----edit order----")
-      console.log(editOrder)
+      // console.log("----edit order----")
+      // console.log(editOrder)
       return {
         order_id: editOrder.id,
-        exchange_url: job.data.exchange_url,
+        api_url: job.data.api_url,
         symbol: job.data.symbol,
         type: job.data.type,
         side: job.data.side,
         amount: job.data.amount,
-        price: job.data.price,
+        spread_percent: job.data.price,
         api_key: job.data.api_key,
         api_secret: job.data.api_secret,
-        continue: false
+        login_api_apiKey_S: job.data.login_api_apiKey_S,
+        fine_exchange_user_id: job.data.fine_exchange_user_id,
+        seconds_interval: job.data.seconds_interval,
+        task_id: job.data.task_id,
+        continue: true
       }
     }
   }, {
