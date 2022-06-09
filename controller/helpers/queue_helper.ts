@@ -56,7 +56,7 @@ async function getOrderBook(job: any, res: any, uniq_id: string) {
   }
 }
 
-async function addJobs (job_data: any, email: string, res: any) {
+async function addJobs (job_data: any, email: string, res: any, _continue: any) {
   var _obj = {
       order_id: job_data.order_id ? job_data.order_id : '',
       api_url: job_data.api_url,
@@ -75,7 +75,8 @@ async function addJobs (job_data: any, email: string, res: any) {
       fine_exchange_user_id: email ? email : job_data.fine_exchange_user_id, // unique id (email probably) of this fine exchange user (from fine exchange mainnet)
       task_id: job_data.task_uuid, // to be send by front-end (unique if of the task)
       login_api_apiKey_S: job_data.login_api_apiKey_S,
-      seconds_interval: job_data.seconds_interval
+      seconds_interval: job_data.seconds_interval,
+      continue: _continue
     }
   let uniq_id = job_data.login_api_apiKey_S
   await getOrderBook(_obj, res, uniq_id) // Test if order book exist (because this is required to refer price spread in worker)
@@ -102,10 +103,11 @@ queueEvents.on('completed', (data: any) => {
   console.log(data.returnvalue) // TODO: remove this from here after it is working
   logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: job_completed: " + data.returnvalue.login_api_apiKey_S + ": job_id: " + data.jobId + ": returned_value: " + encryptData(JSON.stringify(data.returnvalue)))
   
+  // TODO: calculate if it is required to continue this task or not
   if (data.returnvalue.continue == true) {
     console.log(data.returnvalue)
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: job_completed: job_repeated: " + data.returnvalue.login_api_apiKey_S + ": job_id: " + data.jobId + ": returned_value: " + encryptData(JSON.stringify(data.returnvalue)))
-    addJobs(data.returnvalue, data.returnvalue.fine_exchange_user_id, 1)
+    addJobs(data.returnvalue, data.returnvalue.fine_exchange_user_id, 1, data.returnvalue.continue)
     // TODO: update db
   } else {
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: job_completed: job_not_repeated: " + data.returnvalue.login_api_apiKey_S + ": job_id: " + data.jobId + ": returned_value: " + encryptData(JSON.stringify(data.returnvalue)))

@@ -123,7 +123,7 @@ async function main () {
         email: job.data.email,
         seconds_interval: job.data.seconds_interval,
         task_uuid: job.data.task_id,
-        continue: true
+        continue: job.data.continue
       }
     } else {
       let editOrder = await exchange.editOrder(
@@ -150,7 +150,7 @@ async function main () {
         fine_exchange_user_id: job.data.fine_exchange_user_id,
         seconds_interval: job.data.seconds_interval,
         task_id: job.data.task_id,
-        continue: true
+        continue: job.data.continue
       }
     }
   }, {

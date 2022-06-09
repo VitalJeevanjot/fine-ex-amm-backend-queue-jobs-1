@@ -14,7 +14,7 @@ const create_new = async (req: Request, res: Response) => {
 
     // console.log(req.body) // should be req.body.body
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: " + req.body.body.login_api_apiKey_S.toString() + ": " + encryptData(JSON.stringify(req.body)))
-    await addJobs(req.body.body, req.body.login_email, res)
+    await addJobs(req.body.body, req.body.login_email, res, true)
     if(res.headersSent) {
       return
     }
