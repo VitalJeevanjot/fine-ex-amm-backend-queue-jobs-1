@@ -1,20 +1,22 @@
 import { Request, Response } from 'express';
-import axios from 'axios'
 import { setRequiredVariable, encryptData } from '../helpers';
 import logger from '../logger';
 import { addJobs } from './helpers/queue_helper';
 // import { QuickDB } from 'quick.db';
 // const db = QuickDB({ filePath: 'db/main.sqlite' });
-
+const crypto = require("crypto");
 // var user_task_control = new db.table('user_task_control')
-
+const hello = async (req: Request, res: Response) => {
+  return res.status(200).send("Hello")
+}
 const create_new = async (req: Request, res: Response) => {
   try {
     logger.info('\n\n')
 
     // console.log(req.body) // should be req.body.body
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: " + req.body.body.login_api_apiKey_S.toString() + ": " + encryptData(JSON.stringify(req.body)))
-    await addJobs(req.body.body, req.body.login_email, res, true)
+    let id = crypto.randomBytes(20).toString("hex")
+    await addJobs(req.body.body, req.body.login_email, res, true, id)
     if(res.headersSent) {
       return
     }
@@ -33,7 +35,8 @@ const create_new = async (req: Request, res: Response) => {
 
 
 export {
-  create_new
+  create_new,
+  hello
 }
 
 

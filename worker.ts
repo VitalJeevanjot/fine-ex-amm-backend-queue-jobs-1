@@ -1,79 +1,17 @@
 import { Worker } from 'bullmq';
 import ccxt from 'ccxt';
 
-import { setRequiredVariable } from './helpers';
-
+import { setRequiredVariable, encryptData } from './helpers';
+import logger from './logger';
 
 
 
 async function main () {
-  console.log('up!')
-  // // for better make 2 workers with 2 loggins, One for 'buying' and one for 'selling'
-  // // <...Testing...> 
-  // var obj: any = {
-  //   urls:
-  //   {
-  //     api:
-  //     {
-  //       rest:
-  //         "https://api.fine.exchange"
-  //     }
-  //   }
-  // }
-  // const exchange: any = new ccxt.hollaex(obj)
-  // exchange.apiKey = setRequiredVariable('APIKEY')
-  // exchange.secret = setRequiredVariable('APISECRET')
-  // console.log(await exchange.fetchStatus())
+  logger.info("\n\n")
+  logger.info(setRequiredVariable('SERVER_NAME') + ': worker: ' + 'up!')
 
-
-  // console.log(await exchange.fetchAccounts())
-  // console.log(await exchange.fetchOrderBook('XHT/USDT', 5))
-  // console.log(await exchange.fetchOrderBook('XHT/USDT', 5))
-  // console.log(await exchange.has)
-
-  // var get_balance = await exchange.fetchBalance()
-
-  // console.log(get_balance)
-
-  // </...Testing...>
-
-  // <...Testing...>
-  // let orderId = await exchange.createOrder(
-  //   'XHT/USDT',
-  //   'limit',
-  //   'buy',
-  //   '10',
-  //   '0.14'
-  // )
-
-  // console.log('orderID')
-  // console.log(orderId)
-
-  // let editOrder = await exchange.editOrder(
-  //   orderId.id,
-  //   'XHT/USDT',
-  //   'limit',
-  //   'buy',
-  //   '10',
-  //   '0.13'
-  // )
-  // console.log('Edited Order ID')
-  // console.log(editOrder)
-
-  // let edit_again_Order = await exchange.editOrder(
-  //   editOrder.id,
-  //   'XHT/USDT',
-  //   'limit',
-  //   'buy',
-  //   '10',
-  //   '0.12'
-  // )
-  // console.log('Edited again Order ID')
-  // console.log(edit_again_Order)
-  // </...Testing...>
-
-
-  const worker = new Worker('tasks', async job => {
+  const worker = new Worker('tasks', async (job: any) => {
+    logger.info(setRequiredVariable('SERVER_NAME') + ': worker: ' + `${job.id}: email: ${encryptData(job.data.email)}: job_data: ${encryptData(JSON.stringify(job.data))}`)
     var obj: any = {
       urls:
       {
@@ -122,7 +60,7 @@ async function main () {
         login_api_apiKey_S: job.data.login_api_apiKey_S,
         email: job.data.email,
         seconds_interval: job.data.seconds_interval,
-        task_uuid: job.data.task_id,
+        task_unique_id: job.data.task_unique_id,
         continue: job.data.continue
       }
     } else {
@@ -149,7 +87,7 @@ async function main () {
         login_api_apiKey_S: job.data.login_api_apiKey_S,
         fine_exchange_user_id: job.data.fine_exchange_user_id,
         seconds_interval: job.data.seconds_interval,
-        task_id: job.data.task_id,
+        task_unique_id: job.data.task_unique_id,
         continue: job.data.continue
       }
     }
@@ -161,22 +99,20 @@ async function main () {
     }
   })
 
-  var i = 0;
-
   // worker.on('resumed', () => {
   //   console.log('active!')
   // })
 
-  worker.on('failed', (job, err) => {
+  worker.on('failed', (job: any, err: any) => {
+    logger.info(setRequiredVariable('SERVER_NAME') + ': worker: ' + `${job.id} has failed with ${err.message}`)
     console.log(`${job.id} has failed with ${err.message}`)
     var current = new Date();
     console.log(current)
   })
-
-  worker.on('completed', job => {
+  
+  worker.on('completed', (job: any) => {
+    logger.info(setRequiredVariable('SERVER_NAME') + ': worker: ' + `${job.id} has completed`)
     console.log(`${job.id} has completed`)
-    i++
-    console.log(i)
   })
 }
 main()

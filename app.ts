@@ -13,6 +13,7 @@ app.use(function (req, res, next) {
   next();
 });
 
+app.get('/hello', queueController.hello)
 app.post('/create_new_task', queueController.create_new)
 app.post('/stop_task', queueController.create_new)
 app.post('/delete_task', queueController.create_new)
