@@ -3,7 +3,6 @@ import { QueueEvents } from 'bullmq';
 import ccxt from 'ccxt';
 import logger from '../../logger';
 import axios from 'axios'
-const crypto = require("crypto");
 
 require('dotenv').config({ path: __dirname + '/../../.env' })
 import { setRequiredVariable, encryptData } from '../../helpers';
@@ -97,6 +96,7 @@ async function addJobs (job_data: any, login_email: string, res: any, _continue:
       task_unique_id: id, // to be send by front-end (unique if of the task)
       login_api_apiKey_S: job_data.login_api_apiKey_S,
       seconds_interval: job_data.seconds_interval,
+      taskRunningServer: setRequiredVariable('SERVER_NAME'),
       continue: _continue
     }
   await getOrderBook(_obj, res, job_data.login_api_apiKey_S) // Check if order book exist (because this is required to refer price spread in worker)
@@ -104,7 +104,6 @@ async function addJobs (job_data: any, login_email: string, res: any, _continue:
 }
 
 async function addToQueue(_obj: any, job_data: any, again: any) {
-  // let id = crypto.randomBytes(20).toString("hex")
   // TODO: add to log
   try {
     await queue.add(
