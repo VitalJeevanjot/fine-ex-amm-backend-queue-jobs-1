@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { setRequiredVariable, encryptData } from '../helpers';
 import logger from '../logger';
-import { addJobs } from './helpers/queue_helper';
+import { saveToDb } from './helpers/queue_helper';
 // import { QuickDB } from 'quick.db';
 // const db = QuickDB({ filePath: 'db/main.sqlite' });
 const crypto = require("crypto");
@@ -17,7 +17,7 @@ const create_new = async (req: Request, res: Response) => {
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: " + req.body.body.login_api_apiKey_S.toString() + ": " + encryptData(JSON.stringify(req.body)))
     let id = crypto.randomBytes(20).toString("hex")
     
-    await addJobs(req.body.body, req.body.login_email, res, true, id)
+    await saveToDb(req.body.body, req.body.login_email, res, true, id)
     
     if(res.headersSent) {
       return

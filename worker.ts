@@ -11,7 +11,10 @@ async function main () {
   logger.info(setRequiredVariable('SERVER_NAME') + ': worker: ' + 'up!')
 
   const worker = new Worker('tasks', async (job: any) => {
-    logger.info(setRequiredVariable('SERVER_NAME') + ': worker: ' + `${job.id}: email: ${encryptData(job.data.email)}: job_data: ${encryptData(JSON.stringify(job.data))}`)
+    // console.log("job>")
+    // console.log(job)
+    // console.log("<job")
+    logger.info(setRequiredVariable('SERVER_NAME') + ': worker: ' + `${job.id}: email: ${encryptData(job.data.fine_exchange_user_id)}: job_data: ${encryptData(JSON.stringify(job.data))}`)
     var obj: any = {
       urls:
       {
@@ -36,8 +39,8 @@ async function main () {
     let calculate_price_spread = (get_side === 'buy') ? top_bid_ask - (top_bid_ask / 100 * 5) : top_bid_ask + (top_bid_ask / 100 * 5)
     var get_balance = await exchange.fetchBalance()
     // (for my exchange) the percentage of amount used is base currency, to buy/sell quote
-    let calculated_amount = (get_balance[get_symbol[0]]['free'] / 100) * job.data.price
-    if (job.data.order_id === '') {
+    let calculated_amount = (get_balance[get_symbol[0]]['free'] / 100) * job.data.spread_percent
+    if (job.data.taskRecentOrderId === '') {
       let orderId = await exchange.createOrder(
         job.data.symbol,
         job.data.type,
@@ -48,24 +51,25 @@ async function main () {
       // console.log("----new order----")
       // console.log(orderId)
       return {
-        order_id: orderId.id,
+        taskRecentOrderId: orderId.id,
         api_url: job.data.api_url,
+        login_api_exchangeURL: job.data.login_api_exchangeURL,
         symbol: job.data.symbol,
         type: job.data.type,
         side: job.data.side,
         amount: job.data.amount,
-        spread_percent: job.data.price,
+        spread_percent: job.data.spread_percent,
         api_key: job.data.api_key,
         api_secret: job.data.api_secret,
         login_api_apiKey_S: job.data.login_api_apiKey_S,
-        email: job.data.email,
+        fine_exchange_user_id: job.data.fine_exchange_user_id,
         seconds_interval: job.data.seconds_interval,
         task_unique_id: job.data.task_unique_id,
         continue: job.data.continue
       }
     } else {
       let editOrder = await exchange.editOrder(
-        job.data.order_id,
+        job.data.taskRecentOrderId,
         job.data.symbol,
         job.data.type,
         get_side,
@@ -75,13 +79,14 @@ async function main () {
       // console.log("----edit order----")
       // console.log(editOrder)
       return {
-        order_id: editOrder.id,
+        taskRecentOrderId: editOrder.id,
         api_url: job.data.api_url,
+        login_api_exchangeURL: job.data.login_api_exchangeURL,
         symbol: job.data.symbol,
         type: job.data.type,
         side: job.data.side,
         amount: job.data.amount,
-        spread_percent: job.data.price,
+        spread_percent: job.data.spread_percent,
         api_key: job.data.api_key,
         api_secret: job.data.api_secret,
         login_api_apiKey_S: job.data.login_api_apiKey_S,
@@ -105,6 +110,7 @@ async function main () {
 
   worker.on('failed', (job: any, err: any) => {
     logger.info(setRequiredVariable('SERVER_NAME') + ': worker: ' + `${job.id} has failed with ${err.message}`)
+    console.log(err)
     console.log(`${job.id} has failed with ${err.message}`)
     var current = new Date();
     console.log(current)

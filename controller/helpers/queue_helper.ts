@@ -29,6 +29,7 @@ const queueEvents = new QueueEvents('tasks', {
   }
 })
 
+
 async function getOrderBook(job: any, res: any, uniq_id: string) {
   var obj: any = {
       urls:
@@ -60,12 +61,13 @@ async function getOrderBook(job: any, res: any, uniq_id: string) {
   }
 }
 
-async function addJobs (job_data: any, login_email: string, res: any, _continue: any, id: string) {
 
+async function saveToDb(job_data: any, login_email: string, res: any, _continue: any, id: string) {
   try {
     // send data to db (db_post_data)
     var url = `http://${setRequiredVariable('SERVER_DB_URL')}:${setRequiredVariable('SERVER_DB_PORT')}${setRequiredVariable('SAVE_SERVICE_ENDPOINT')}`
-
+    job_data.taskRunningServer = setRequiredVariable('SERVER_NAME')
+    job_data.continue = true
     let response = await axios.post(url,
       {
         login_email: login_email, 
@@ -73,25 +75,44 @@ async function addJobs (job_data: any, login_email: string, res: any, _continue:
         uid: id
       }
     )
+    // console.log("response.data>")
+    // console.log(response.data)
+    // console.log("<response.data")
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: db_post_data: " + job_data.login_api_apiKey_S + ": job_id: " + id + ": returned_value: " + encryptData(JSON.stringify(response.data)))
+    addJobs(job_data, login_email, res, _continue, id)
   } catch(e: any) {
-    logger.info(setRequiredVariable('SERVER_NAME') + ': getOrderBook: Unexpected Error: ' + e.stack + ': e_response: ' + JSON.stringify(e.response.data))
-    if(res.headersSent) {
-      return
+    try {
+      logger.info(setRequiredVariable('SERVER_NAME') + ': getOrderBook: Unexpected Error: ' + e.stack + ': e_response: ' + (e.response) ? JSON.stringify(e.response.data) : 'null')
+      if(res.headersSent) {
+        return
+      }
+      return res.status(200).json({ // status 200, so it can be passed from the function in load balancer
+        status: job_data.login_api_apiKey_S + ': ' + e.response.data.message,
+      })
+    } catch(e:any) {
+      logger.info(setRequiredVariable('SERVER_NAME') + ': getOrderBook: Unexpected Error: ' + e.stack + ': e_tostring: ' + e.toString())
+      if(res.headersSent) {
+        return
+      }
+      return res.status(200).json({ // status 200, so it can be passed from the function in load balancer
+        status: job_data.login_api_apiKey_S + ': ' + e.toString(),
+      })
     }
-    return res.status(200).json({ // status 200, so it can be passed from the function in load balancer
-      status: job_data.login_api_apiKey_S + ': ' + e.response.data.message,
-    })
   }
-  
+}
+
+
+async function addJobs (job_data: any, login_email: string, res: any, _continue: any, id: string) {
+  // TODO: Get lastest saved data from db and use it from there
   var _obj = {
-      order_id: job_data.order_id ? job_data.order_id : '',
+      taskRecentOrderId: job_data.taskRecentOrderId ? job_data.taskRecentOrderId : '',
       api_url: job_data.api_url,
+      login_api_exchangeURL: job_data.login_api_exchangeURL,
       symbol: job_data.symbol.value ? job_data.symbol.value : job_data.symbol,
       type: 'limit',
       side: job_data.side,
       amount: job_data.amount, // per cent from wallet
-      price: job_data.spread_percent, // per cent of spread
+      spread_percent: job_data.spread_percent, // per cent of spread
       api_key: setRequiredVariable('APIKEY'),
       api_secret: setRequiredVariable('APISECRET'),
       timeStarted: job_data.timeStarted ? job_data.timeStarted : Date.now(), // total time elapsed since the task running
@@ -105,10 +126,14 @@ async function addJobs (job_data: any, login_email: string, res: any, _continue:
       seconds_interval: job_data.seconds_interval,
       taskRunningServer: setRequiredVariable('SERVER_NAME'),
       continue: _continue
-    }
+  }
+  // console.log("_obj>")
+  // console.log(_obj)
+  // console.log("<_obj")
   await getOrderBook(_obj, res, job_data.login_api_apiKey_S) // Check if order book exist (because this is required to refer price spread in worker)
   await addToQueue(_obj, job_data, 0)
 }
+
 
 async function addToQueue(_obj: any, job_data: any, again: any) {
   // TODO: add to log
@@ -152,7 +177,7 @@ queueEvents.on('completed', (data: any) => {
 });
 
 export {
-  addJobs
+  saveToDb
 }
 
 
