@@ -65,18 +65,25 @@ async function addJobs (job_data: any, login_email: string, res: any, _continue:
   try {
     // send data to db (db_post_data)
     var url = `http://${setRequiredVariable('SERVER_DB_URL')}:${setRequiredVariable('SERVER_DB_PORT')}${setRequiredVariable('SAVE_SERVICE_ENDPOINT')}`
+
     let response = await axios.post(url,
       {
         login_email: login_email, 
-        body: job_data
+        body: job_data,
+        uid: id
       }
     )
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: db_post_data: " + job_data.login_api_apiKey_S + ": job_id: " + id + ": returned_value: " + encryptData(JSON.stringify(response.data)))
-  } catch(e) {
+  } catch(e: any) {
+    logger.info(setRequiredVariable('SERVER_NAME') + ': getOrderBook: Unexpected Error: ' + e.stack + ': e_response: ' + JSON.stringify(e.response.data))
+    if(res.headersSent) {
+      return
+    }
     return res.status(200).json({ // status 200, so it can be passed from the function in load balancer
-      status: job_data.login_api_apiKey_S + ': Error: No orders available to take reference from.',
+      status: job_data.login_api_apiKey_S + ': ' + e.response.data.message,
     })
   }
+  
   var _obj = {
       order_id: job_data.order_id ? job_data.order_id : '',
       api_url: job_data.api_url,

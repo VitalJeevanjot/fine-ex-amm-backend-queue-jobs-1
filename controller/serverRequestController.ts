@@ -16,19 +16,24 @@ const create_new = async (req: Request, res: Response) => {
     // console.log(req.body) // should be req.body.body
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: " + req.body.body.login_api_apiKey_S.toString() + ": " + encryptData(JSON.stringify(req.body)))
     let id = crypto.randomBytes(20).toString("hex")
+    
     await addJobs(req.body.body, req.body.login_email, res, true, id)
+    
     if(res.headersSent) {
       return
     }
+    
     return res.status(200).send({message: '<span class="text-green">Running!</span>', status: 'running'})
   } catch (e: any) {
     console.log(e)
+    logger.info(setRequiredVariable('SERVER_NAME') + 'Unexpected Error: ' + e.stack.toString())
+    
     if(res.headersSent) {
       return
     }
-    logger.info(setRequiredVariable('SERVER_NAME') + 'Unexpected Error: ' + e.stack.toString())
-    return res.status(500).json({
-      'message': 'c_n_q_work: Unexpected error: ' + e.message
+    
+    return res.status(200).json({
+      'message': 'c_n_q_work: Unexpected error: ' + e.toString()
     })
   }
 }
