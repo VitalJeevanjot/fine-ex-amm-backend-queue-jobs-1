@@ -12,20 +12,20 @@ import { setRequiredVariable, encryptData } from '../../helpers';
 
 const queueScheduler = new QueueScheduler('tasks', {
   connection: {
-    host: "127.0.0.1",
-    port: 6379
+    host: setRequiredVariable('REDIS_HOST'),
+    port: setRequiredVariable('REDIS_PORT')
   }
 });
 const queue = new Queue('tasks', {
   connection: {
-    host: "127.0.0.1",
-    port: 6379
+    host: setRequiredVariable('REDIS_HOST'),
+    port: setRequiredVariable('REDIS_PORT')
   }
 })
 const queueEvents = new QueueEvents('tasks', {
   connection: {
-    host: "127.0.0.1",
-    port: 6379
+    host: setRequiredVariable('REDIS_HOST'),
+    port: setRequiredVariable('REDIS_PORT')
   }
 })
 
