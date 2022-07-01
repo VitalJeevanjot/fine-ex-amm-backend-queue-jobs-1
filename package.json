@@ -9,7 +9,8 @@
     "remove-tasks": "ts-node controller/cli/remove_all_jobs.ts",
     "dev": "nodemon app.ts",
     "worker": "nodemon worker.ts",
-    "build": "tsc -p ."
+    "build": "tsc -p .",
+    "data": "ts-node demo/test_decrypt.ts"
   },
   "keywords": [],
   "author": "",

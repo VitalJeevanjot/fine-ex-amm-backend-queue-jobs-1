@@ -68,6 +68,7 @@ async function saveToDb(job_data: any, login_email: string, res: any, _continue:
     var url = `http://${setRequiredVariable('SERVER_DB_URL')}:${setRequiredVariable('SERVER_DB_PORT')}${setRequiredVariable('SAVE_SERVICE_ENDPOINT')}`
     job_data.taskRunningServer = setRequiredVariable('SERVER_NAME')
     job_data.continue = true
+    logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: called: " + job_data.login_api_apiKey_S.toString() + ": " + encryptData(JSON.stringify(job_data)))
     let response = await axios.post(url,
       {
         login_email: login_email, 

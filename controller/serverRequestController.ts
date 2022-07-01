@@ -12,9 +12,8 @@ const hello = async (req: Request, res: Response) => {
 const create_new = async (req: Request, res: Response) => {
   try {
     logger.info('\n\n')
-
+    // logging info at saveToDb after whole object is completed 
     // console.log(req.body) // should be req.body.body
-    logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: " + req.body.body.login_api_apiKey_S.toString() + ": " + encryptData(JSON.stringify(req.body)))
     let id = crypto.randomBytes(20).toString("hex")
     
     await saveToDb(req.body.body, req.body.login_email, res, true, id)
