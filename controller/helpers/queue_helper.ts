@@ -111,7 +111,8 @@ async function addJobs (job_data: any, login_email: string, res: any, _continue:
     logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: db_task_status: called: " + job_data.login_api_apiKey_S.toString() + ": " + encryptData(JSON.stringify(job_data)))
     response = await axios.post(url,
       {
-        id: id
+        id: id,
+        login_api_apiKey_S: job_data.login_api_apiKey_S
       }
     )
     console.log(response.data)
