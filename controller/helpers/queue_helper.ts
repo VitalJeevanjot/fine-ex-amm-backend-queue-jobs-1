@@ -67,7 +67,7 @@ async function saveToDb(job_data: any, login_email: string, res: any, _continue:
     // send data to db (db_post_data)
     var url = `http://${setRequiredVariable('SERVER_DB_URL')}:${setRequiredVariable('SERVER_DB_PORT')}${setRequiredVariable('SAVE_SERVICE_ENDPOINT')}`
     job_data.taskRunningServer = setRequiredVariable('SERVER_NAME')
-    job_data.continue = true
+    job_data.continue = _continue
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: called: " + job_data.login_api_apiKey_S.toString() + ": " + encryptData(JSON.stringify(job_data)))
     let response = await axios.post(url,
       {
@@ -105,6 +105,20 @@ async function saveToDb(job_data: any, login_email: string, res: any, _continue:
 
 async function addJobs (job_data: any, login_email: string, res: any, _continue: any, id: string) {
   // TODO: Get lastest saved data from db and use it from there
+  var url = `http://${setRequiredVariable('SERVER_DB_URL')}:${setRequiredVariable('SERVER_DB_PORT')}/get_task_by_id`
+  var response: any
+  try {
+    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: db_task_status: called: " + job_data.login_api_apiKey_S.toString() + ": " + encryptData(JSON.stringify(job_data)))
+    response = await axios.post(url,
+      {
+        id: id
+      }
+    )
+    console.log(response.data)
+    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: db_task_status: response: " + job_data.login_api_apiKey_S.toString() + ": " + encryptData(JSON.stringify(response.data)))
+  } catch(e: any) {
+    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: db_task_status: error: " + job_data.login_api_apiKey_S.toString() + " error: " + e.toString() + " error_stack: " + e.stack)
+  }
   var _obj = {
       taskRecentOrderId: job_data.taskRecentOrderId ? job_data.taskRecentOrderId : '',
       api_url: job_data.api_url,
@@ -126,14 +140,49 @@ async function addJobs (job_data: any, login_email: string, res: any, _continue:
       login_api_apiKey_S: job_data.login_api_apiKey_S,
       seconds_interval: job_data.seconds_interval,
       taskRunningServer: setRequiredVariable('SERVER_NAME'),
-      continue: _continue
+      continue: (response.data == 'running') ? _continue : false
   }
   // console.log("_obj>")
   // console.log(_obj)
   // console.log("<_obj")
-  await getOrderBook(_obj, res, job_data.login_api_apiKey_S) // Check if order book exist (because this is required to refer price spread in worker)
-  await addToQueue(_obj, job_data, 0)
+  try {
+    if(!(res === 1)) {
+      await getOrderBook(_obj, res, job_data.login_api_apiKey_S) // Check if order book exist (because this is required to refer price spread in worker)
+    }
+  } catch (e: any) {
+    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: getOrderBook: error: stoping_task: " + job_data.login_api_apiKey_S + " error: " + e.toString() + " error_stack: " + e.stack)
+    setTaskToStop(job_data.login_api_apiKey_S, 'stopped', id)
+    // TODO: change task status to stop
+  }
+  try {
+    await addToQueue(_obj, job_data, 0)
+  } catch(e: any) {
+    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: addToQueue: error: stoping_task: " + job_data.login_api_apiKey_S + " error: " + e.toString() + " error_stack: " + e.stack)
+    setTaskToStop(job_data.login_api_apiKey_S, 'stopped', id)
+    // TODO: change task status to stop
+  }
 }
+
+
+async function setTaskToStop(logger_key: string, status: string, id: string) {
+  try {
+    var url = `http://${setRequiredVariable('SERVER_DB_URL')}:${setRequiredVariable('SERVER_DB_PORT')}/delete_service`
+    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: setTaskToStop: called: " + logger_key + ": id: " + encryptData(id) + ": status: " + status)
+    let response = await axios.post(url,
+      {
+        login_api_apiKey_S: logger_key,
+        status: status,
+        id: id
+      }
+    )
+    console.log(response.data)
+    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: setTaskToStop: response: " + response.data.logger_key + ": " + encryptData(JSON.stringify(response.data)))
+  } catch(e: any) {
+      logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: setTaskToStop: error: " + logger_key + " error: " + e.toString() + " error_stack: " + e.stack)
+  }
+}
+
+
 
 
 async function addToQueue(_obj: any, job_data: any, again: any) {
@@ -152,10 +201,14 @@ async function addToQueue(_obj: any, job_data: any, again: any) {
   }
 }
 
-// TODO: use 'failed' event as well to set task stopped in db
-queueEvents.on('failed', (job: any) => {
+// TODO: use 'failed' event as well to set task stopped in db from worker because here information is not proper
+queueEvents.on('failed', async (job: any) => {
   // job has failed
   console.log(job)
+  const _job: any = await queue.getJob(job.jobId)
+  console.log("_job=>")
+  console.log(_job)
+  console.log("<=_job")
   // { jobId: '8', failedReason: "Cannot read property '0' of undefined" }
 });
 queueEvents.on('completed', (data: any) => {
