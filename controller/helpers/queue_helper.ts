@@ -165,26 +165,6 @@ async function addJobs (job_data: any, login_email: string, res: any, _continue:
 }
 
 
-async function setTaskToStop(logger_key: string, status: string, id: string) {
-  try {
-    var url = `http://${setRequiredVariable('SERVER_DB_URL')}:${setRequiredVariable('SERVER_DB_PORT')}/delete_service`
-    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: setTaskToStop: called: " + logger_key + ": id: " + encryptData(id) + ": status: " + status)
-    let response = await axios.post(url,
-      {
-        login_api_apiKey_S: logger_key,
-        status: status,
-        id: id
-      }
-    )
-    console.log(response.data)
-    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: setTaskToStop: response: " + response.data.logger_key + ": " + encryptData(JSON.stringify(response.data)))
-  } catch(e: any) {
-      logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: setTaskToStop: error: " + logger_key + " error: " + e.toString() + " error_stack: " + e.stack)
-  }
-}
-
-
-
 
 async function addToQueue(_obj: any, job_data: any, again: any) {
   // TODO: add to log
@@ -233,8 +213,30 @@ queueEvents.on('completed', (data: any) => {
   }
 });
 
+
 export {
   saveToDb
+}
+
+
+
+
+async function setTaskToStop(logger_key: string, status: string, id: string) {
+  try {
+    var url = `http://${setRequiredVariable('SERVER_DB_URL')}:${setRequiredVariable('SERVER_DB_PORT')}/delete_service`
+    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: setTaskToStop: called: " + logger_key + ": id: " + encryptData(id) + ": status: " + status)
+    let response = await axios.post(url,
+      {
+        login_api_apiKey_S: logger_key,
+        status: status,
+        id: id
+      }
+    )
+    console.log(response.data)
+    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: setTaskToStop: response: " + response.data.logger_key + ": " + encryptData(JSON.stringify(response.data)))
+  } catch(e: any) {
+      logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: setTaskToStop: error: " + logger_key + " error: " + e.toString() + " error_stack: " + e.stack)
+  }
 }
 
 
