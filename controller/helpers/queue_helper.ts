@@ -141,7 +141,7 @@ async function addJobs (job_data: any, login_email: string, res: any, _continue:
       login_api_apiKey_S: job_data.login_api_apiKey_S,
       seconds_interval: job_data.seconds_interval,
       taskRunningServer: setRequiredVariable('SERVER_NAME'),
-      continue: (response.data == 'running') ? _continue : false
+      continue: (response.data.task.taskStatus == 'running') ? _continue : false
   }
   // console.log("_obj>")
   // console.log(_obj)
@@ -208,8 +208,9 @@ queueEvents.on('failed', async (job: any) => {
   console.log(job)
   const _job: any = await queue.getJob(job.jobId)
   console.log("_job=>")
-  console.log(_job)
+  console.log(_job.data)
   console.log("<=_job")
+  setTaskToStop(_job.data.login_api_apiKey_S, 'stopped', _job.data.task_unique_id)
   // { jobId: '8', failedReason: "Cannot read property '0' of undefined" }
 });
 queueEvents.on('completed', (data: any) => {
