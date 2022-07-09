@@ -104,7 +104,9 @@ async function saveToDb(job_data: any, login_email: string, res: any, _continue:
 
 
 async function addJobs (job_data: any, login_email: string, res: any, _continue: any, id: string) {
-  // TODO: Get lastest saved data from db and use it from there
+  // DONE: Get lastest saved data from db and use it from there
+  
+  
   var url = `http://${setRequiredVariable('SERVER_DB_URL')}:${setRequiredVariable('SERVER_DB_PORT')}/get_task_by_id`
   var response: any
   try {
@@ -153,21 +155,21 @@ async function addJobs (job_data: any, login_email: string, res: any, _continue:
   } catch (e: any) {
     logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: getOrderBook: error: stoping_task: " + job_data.login_api_apiKey_S + " error: " + e.toString() + " error_stack: " + e.stack)
     setTaskToStop(job_data.login_api_apiKey_S, 'stopped', id)
-    // TODO: change task status to stop
+    // DONE: TODO: change task status to stop
   }
   try {
     await addToQueue(_obj, job_data, 0)
   } catch(e: any) {
     logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: addToQueue: error: stoping_task: " + job_data.login_api_apiKey_S + " error: " + e.toString() + " error_stack: " + e.stack)
     setTaskToStop(job_data.login_api_apiKey_S, 'stopped', id)
-    // TODO: change task status to stop
+    // DONE: TODO: change task status to stop
   }
 }
 
 
 
 async function addToQueue(_obj: any, job_data: any, again: any) {
-  // TODO: add to log
+  // DONE: TODO: add to log
   try {
     await queue.add(
       'createOrder',
@@ -177,38 +179,45 @@ async function addToQueue(_obj: any, job_data: any, again: any) {
         // jobId: id
       }
     );
+    
   } catch (e: any) {
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: addToQueue: " + "again: " + again + ": " + _obj.login_api_apiKey_S+ " error: " + e.toString() + " error_stack: " + e.stack)
   }
 }
 
-// TODO: use 'failed' event as well to set task stopped in db from worker because here information is not proper
+// DONE: TODO: use 'failed' event as well to set task stopped in db from worker because here information is not proper
 queueEvents.on('failed', async (job: any) => {
   // job has failed
   console.log(job)
   logger.info(setRequiredVariable('SERVER_NAME') + ": job_failed: " + JSON.stringify(job))
   const _job: any = await queue.getJob(job.jobId)
+  logger.info(setRequiredVariable('SERVER_NAME') + ": job_failed: job_data: " + encryptData(JSON.stringify(_job.data)))
   // console.log("_job=>")
   // console.log(_job.data)
   // console.log("<=_job")
   setTaskToStop(_job.data.login_api_apiKey_S, 'stopped', _job.data.task_unique_id)
   // { jobId: '8', failedReason: "Cannot read property '0' of undefined" }
 });
-queueEvents.on('completed', (data: any) => {
+queueEvents.on('completed', async (data: any) => {
   console.log(`${data.jobId} has completed and returned`);
   console.log(data.returnvalue) // TODO: remove this from here after it is working
   logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: job_completed: " + data.returnvalue.login_api_apiKey_S + ": job_id: " + data.jobId + ": returned_value: " + encryptData(JSON.stringify(data.returnvalue)))
   
   // TODO: calculate if it is required to continue this task or not
-  // TODO: Use DB (stopped/running) to continue or not instead of these variables
+  // DONE: TODO: Use DB (stopped/running) to continue or not instead of these variables
   if (data.returnvalue.continue == true) {
+    logger.info("\n\n" + setRequiredVariable('SERVER_NAME') + "Job_Repeated: ")
     console.log(data.returnvalue)
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: job_completed: job_repeated: " + data.returnvalue.login_api_apiKey_S + ": job_id: " + data.jobId + ": returned_value: " + encryptData(JSON.stringify(data.returnvalue)))
+    // DONE with order id currently: TODO: update db
+    await updateOrderId(data.returnvalue.login_api_apiKey_S, data.returnvalue.taskRecentOrderId, data.returnvalue.task_unique_id)
     addJobs(data.returnvalue, data.returnvalue.fine_exchange_user_id, 1, data.returnvalue.continue, data.returnvalue.task_unique_id)
-    // TODO: update db
   } else {
+    logger.info("\n\n" + setRequiredVariable('SERVER_NAME') + "Not_Job_Repeated: ")
+    await updateOrderId(data.returnvalue.login_api_apiKey_S, data.returnvalue.taskRecentOrderId, data.returnvalue.task_unique_id)
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: job_completed: job_not_repeated: " + data.returnvalue.login_api_apiKey_S + ": job_id: " + data.jobId + ": returned_value: " + encryptData(JSON.stringify(data.returnvalue)))
-    // TODO: update db
+    // DONE with order id currently: TODO: update db
+
     // log job discontinued and specify reason (by user or by system (intentionally or error))
   }
 });
@@ -236,6 +245,25 @@ async function setTaskToStop(logger_key: string, status: string, id: string) {
     logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: setTaskToStop: response: " + response.data.logger_key + ": " + encryptData(JSON.stringify(response.data)))
   } catch(e: any) {
       logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: setTaskToStop: error: " + logger_key + " error: " + e.toString() + " error_stack: " + e.stack)
+  }
+}
+
+
+async function updateOrderId(logger_key: string, order_id: string, id: string) {
+  try {
+    var url = `http://${setRequiredVariable('SERVER_DB_URL')}:${setRequiredVariable('SERVER_DB_PORT')}/update_order_id`
+    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: updateOrderId: called: " + logger_key + ": id: " + encryptData(id) + ": order_id: " + order_id)
+    let response = await axios.post(url,
+      {
+        login_api_apiKey_S: logger_key,
+        order_id: order_id,
+        id: id
+      }
+    )
+    console.log(response.data)
+    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: updateOrderId: response: " + response.data.logger_key + ": " + encryptData(JSON.stringify(response.data)))
+  } catch(e: any) {
+      logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: updateOrderId: error: " + logger_key + " error: " + e.toString() + " error_stack: " + e.stack)
   }
 }
 

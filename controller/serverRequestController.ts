@@ -11,7 +11,7 @@ const hello = async (req: Request, res: Response) => {
 }
 const create_new = async (req: Request, res: Response) => {
   try {
-    logger.info('\n\n')
+    logger.info("\n\n" + setRequiredVariable('SERVER_NAME') + 'Create_New: ')
     // logging info at saveToDb after whole object is completed 
     // console.log(req.body) // should be req.body.body
     let id = crypto.randomBytes(20).toString("hex")
