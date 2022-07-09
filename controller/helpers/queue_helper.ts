@@ -206,10 +206,11 @@ async function addToQueue(_obj: any, job_data: any, again: any) {
 queueEvents.on('failed', async (job: any) => {
   // job has failed
   console.log(job)
+  logger.info(setRequiredVariable('SERVER_NAME') + ": job_failed: " + JSON.stringify(job))
   const _job: any = await queue.getJob(job.jobId)
-  console.log("_job=>")
-  console.log(_job.data)
-  console.log("<=_job")
+  // console.log("_job=>")
+  // console.log(_job.data)
+  // console.log("<=_job")
   setTaskToStop(_job.data.login_api_apiKey_S, 'stopped', _job.data.task_unique_id)
   // { jobId: '8', failedReason: "Cannot read property '0' of undefined" }
 });
