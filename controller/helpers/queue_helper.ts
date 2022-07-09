@@ -252,7 +252,7 @@ async function setTaskToStop(logger_key: string, status: string, id: string) {
 async function updateOrderId(logger_key: string, order_id: string, id: string) {
   try {
     var url = `http://${setRequiredVariable('SERVER_DB_URL')}:${setRequiredVariable('SERVER_DB_PORT')}/update_order_id`
-    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: updateOrderId: called: " + logger_key + ": id: " + encryptData(id) + ": order_id: " + order_id)
+    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: updateOrderId: called: " + logger_key + ": id: " + encryptData(id) + ": order_id: " + encryptData(order_id))
     let response = await axios.post(url,
       {
         login_api_apiKey_S: logger_key,
