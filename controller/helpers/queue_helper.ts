@@ -46,9 +46,7 @@ async function getOrderBook(job: any, res: any, uniq_id: string) {
     let get_orderbook = await exchange.fetchOrderBook(job.symbol, 5)
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: getOrderBook: " + job.login_api_apiKey_S + ": job_id: " + job.task_unique_id + ": returned_value: " + encryptData(JSON.stringify(get_orderbook)))
     if(get_orderbook.bids.length < 1 || get_orderbook.asks.length < 1) {
-      return res.status(200).json({ // status 200, so it can be passed from the function in load balancer
-        status: uniq_id + ': Error: No orders available to take reference from.',
-      })
+      return "no_orders"
     }
   } catch(e:any) {
     logger.info(setRequiredVariable('SERVER_NAME') + ': getOrderBook: Unexpected Error: ' + e.stack)
@@ -61,44 +59,63 @@ async function getOrderBook(job: any, res: any, uniq_id: string) {
   }
 }
 
+function general_obj(url: string, sym: string, logkey: string, uniqid: string) {
+  return {
+    api_url: url,
+    symbol: sym,
+    login_api_apiKey_S: logkey,
+    task_unique_id: uniqid
+  }
+}
 
 async function saveToDb(job_data: any, login_email: string, res: any, _continue: any, id: string) {
+  // check if orderbook have values
   try {
     // send data to db (db_post_data)
-    var url = `http://${setRequiredVariable('SERVER_DB_URL')}:${setRequiredVariable('SERVER_DB_PORT')}${setRequiredVariable('SAVE_SERVICE_ENDPOINT')}`
+    // console.log("response.data>")
+    // console.log(response.data)
+    // console.log("<response.data")
+    logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: called: " + job_data.login_api_apiKey_S.toString() + ": " + encryptData(JSON.stringify(job_data)))
     job_data.taskRunningServer = setRequiredVariable('SERVER_NAME')
     job_data.continue = _continue
-    logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: called: " + job_data.login_api_apiKey_S.toString() + ": " + encryptData(JSON.stringify(job_data)))
-    let response = await axios.post(url,
+    logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: add_job: " + job_data.login_api_apiKey_S + ": job_id: " + id + ": returned_value: " + encryptData(JSON.stringify(job_data)))
+    let _obj: any = general_obj(job_data.api_url, job_data.symbol.value, job_data.login_api_apiKey_S, job_data.task_unique_id)
+    let ans = await getOrderBook(_obj, res, job_data.login_api_apiKey_S) // Check if order book exist (because this is required to refer price spread in worker)
+    if (ans == 'no_orders') {
+      logger.info(setRequiredVariable('SERVER_NAME') + ': getOrderBook: no_orders Error: '+  job_data.login_api_apiKey_S + ': job_data' + encryptData(JSON.stringify(job_data)))
+      if(!res.headersSent) {
+        logger.info(setRequiredVariable('SERVER_NAME') + ': getOrderBook: no_orders Error: sending_response: '+  job_data.login_api_apiKey_S + ': job_data' + encryptData(JSON.stringify(job_data)))
+        return res.status(200).json({ // status 200, so it can be passed from the function in load balancer
+          status: job_data.login_api_apiKey_S + ': Error: No orders available to take reference from.',
+        })
+      }
+    }
+    
+  } catch(e: any) {
+    logger.info(setRequiredVariable('SERVER_NAME') + ': getOrderBook: Unexpected Error: ' + e.stack + ': e_toString: ' + e.toString())
+  }
+  // add task to db
+  let response : any
+  try {
+    var url = `http://${setRequiredVariable('SERVER_DB_URL')}:${setRequiredVariable('SERVER_DB_PORT')}${setRequiredVariable('SAVE_SERVICE_ENDPOINT')}`
+    response = await axios.post(url,
       {
         login_email: login_email, 
         body: job_data,
         uid: id
       }
     )
-    // console.log("response.data>")
-    // console.log(response.data)
-    // console.log("<response.data")
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: db_post_data: " + job_data.login_api_apiKey_S + ": job_id: " + id + ": returned_value: " + encryptData(JSON.stringify(response.data)))
-    addJobs(job_data, login_email, res, _continue, id)
-  } catch(e: any) {
-    try {
-      logger.info(setRequiredVariable('SERVER_NAME') + ': getOrderBook: Unexpected Error: ' + e.stack + ': e_response: ' + (e.response) ? JSON.stringify(e.response.data) : 'null')
-      if(res.headersSent) {
-        return
-      }
-      return res.status(200).json({ // status 200, so it can be passed from the function in load balancer
-        status: job_data.login_api_apiKey_S + ': ' + e.response.data.message,
-      })
-    } catch(e:any) {
-      logger.info(setRequiredVariable('SERVER_NAME') + ': getOrderBook: Unexpected Error: ' + e.stack + ': e_tostring: ' + e.toString())
-      if(res.headersSent) {
-        return
-      }
-      return res.status(200).json({ // status 200, so it can be passed from the function in load balancer
-        status: job_data.login_api_apiKey_S + ': ' + e.toString(),
-      })
-    }
+  } catch (e: any) {
+    logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: db_post_data: error: " + job_data.login_api_apiKey_S + ": job_id: " + id + ": returned_value: " + encryptData(JSON.stringify(response.data)) +  ':  error: ' + e.stack + ': e_response: ' + (e.response) ? JSON.stringify(e.response.data) : 'null' + ': e_toString: ' + e.toString())
+  }
+
+  //add job
+  try {
+    logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: calling_addJobs: " + job_data.login_api_apiKey_S + ": job_id: " + id + ": returned_value: " + encryptData(JSON.stringify(response.data)))
+    await addJobs(job_data, login_email, res, _continue, id)
+  } catch (e: any) {
+    logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: calling_addJobs: error: " + job_data.login_api_apiKey_S + ": job_id: " + id + ": returned_value: " + encryptData(JSON.stringify(response.data)) +  ':  error: ' + e.stack + ': e_response: ' + (e.response) ? JSON.stringify(e.response.data) : 'null' + ': e_toString: ' + e.toString())
   }
 }
 
@@ -148,15 +165,7 @@ async function addJobs (job_data: any, login_email: string, res: any, _continue:
   // console.log("_obj>")
   // console.log(_obj)
   // console.log("<_obj")
-  try {
-    if(!(res === 1)) {
-      await getOrderBook(_obj, res, job_data.login_api_apiKey_S) // Check if order book exist (because this is required to refer price spread in worker)
-    }
-  } catch (e: any) {
-    logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: getOrderBook: error: stoping_task: " + job_data.login_api_apiKey_S + " error: " + e.toString() + " error_stack: " + e.stack)
-    setTaskToStop(job_data.login_api_apiKey_S, 'stopped', id)
-    // DONE: TODO: change task status to stop
-  }
+
   try {
     await addToQueue(_obj, job_data, 0)
   } catch(e: any) {
@@ -211,7 +220,7 @@ queueEvents.on('completed', async (data: any) => {
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: job_completed: job_repeated: " + data.returnvalue.login_api_apiKey_S + ": job_id: " + data.jobId + ": returned_value: " + encryptData(JSON.stringify(data.returnvalue)))
     // DONE with order id currently: TODO: update db
     await updateOrderId(data.returnvalue.login_api_apiKey_S, data.returnvalue.taskRecentOrderId, data.returnvalue.task_unique_id)
-    addJobs(data.returnvalue, data.returnvalue.fine_exchange_user_id, 1, data.returnvalue.continue, data.returnvalue.task_unique_id)
+    await addJobs(data.returnvalue, data.returnvalue.fine_exchange_user_id, 1, data.returnvalue.continue, data.returnvalue.task_unique_id)
   } else {
     logger.info("\n\n" + setRequiredVariable('SERVER_NAME') + "Not_Job_Repeated: ")
     if(!data.returnvalue.worker_stopped) {
