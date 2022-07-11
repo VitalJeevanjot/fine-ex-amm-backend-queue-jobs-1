@@ -200,7 +200,7 @@ queueEvents.on('failed', async (job: any) => {
 });
 queueEvents.on('completed', async (data: any) => {
   console.log(`${data.jobId} has completed and returned`);
-  console.log(data.returnvalue) // TODO: remove this from here after it is working
+  // console.log(data.returnvalue) // TODO: remove this from here after it is working
   logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: job_completed: " + data.returnvalue.login_api_apiKey_S + ": job_id: " + data.jobId + ": returned_value: " + encryptData(JSON.stringify(data.returnvalue)))
   
   // TODO: calculate if it is required to continue this task or not
@@ -214,7 +214,9 @@ queueEvents.on('completed', async (data: any) => {
     addJobs(data.returnvalue, data.returnvalue.fine_exchange_user_id, 1, data.returnvalue.continue, data.returnvalue.task_unique_id)
   } else {
     logger.info("\n\n" + setRequiredVariable('SERVER_NAME') + "Not_Job_Repeated: ")
-    await updateOrderId(data.returnvalue.login_api_apiKey_S, data.returnvalue.taskRecentOrderId, data.returnvalue.task_unique_id)
+    if(!data.returnvalue.worker_stopped) {
+      await updateOrderId(data.returnvalue.login_api_apiKey_S, data.returnvalue.taskRecentOrderId, data.returnvalue.task_unique_id)
+    }
     logger.info(setRequiredVariable('SERVER_NAME') + ": create_new: job_completed: job_not_repeated: " + data.returnvalue.login_api_apiKey_S + ": job_id: " + data.jobId + ": returned_value: " + encryptData(JSON.stringify(data.returnvalue)))
     // DONE with order id currently: TODO: update db
 
@@ -241,7 +243,7 @@ async function setTaskToStop(logger_key: string, status: string, id: string) {
         id: id
       }
     )
-    console.log(response.data)
+    // console.log(response.data)
     logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: setTaskToStop: response: " + response.data.logger_key + ": " + encryptData(JSON.stringify(response.data)))
   } catch(e: any) {
       logger.info(setRequiredVariable('SERVER_NAME') + ": addJobs: setTaskToStop: error: " + logger_key + " error: " + e.toString() + " error_stack: " + e.stack)
