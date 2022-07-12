@@ -4,7 +4,7 @@ import * as queueController from './controller/serverRequestController'
 
 const app = express();
 
-var port = process.env.PORT || 8080;
+var port = 8080;
 
 app.use(express.json());
 app.use(function (req, res, next) {
