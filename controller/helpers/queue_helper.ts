@@ -147,7 +147,7 @@ async function addJobs (job_data: any, login_email: string, res: any, _continue:
       type: 'limit',
       side: job_data.side,
       amount: job_data.amount, // per cent from wallet
-      spread_percent: job_data.spread_percent, // per cent of spread
+      spread_percentage: job_data.spread_percentage, // per cent of spread
       api_key: setRequiredVariable('APIKEY'),
       api_secret: setRequiredVariable('APISECRET'),
       timeStarted: job_data.timeStarted ? job_data.timeStarted : Date.now(), // total time elapsed since the task running
